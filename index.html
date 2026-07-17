@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 
   <!-- Google Identity Services (only used if a client ID is configured) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -46,8 +46,9 @@
       <div class="hero-copy">
         <p>Yes, we're finally getting rid of him.</p>
         <p>Yes, we should probably wait for him to <em>actually</em> leave before we properly celebrate.</p>
-        <p>But also yes &mdash; we should send him off with some sentimental messages and photos.</p>
-        <p>And yes &mdash; the nicer (and funnier) your message, the more likely he is to stay a bit longer.</p>
+        <p>But also, we should send him off with some sentimental messages and photos.</p>
+        <p>The intention is to wrap it all up into something - a book for him - so he can take it with him.</p>
+        <p>The nicer (and funnier) your message, the more likely he is to stay a bit longer.</p>
         <p class="hero-destination">He's off to New York. For now.</p>
       </div>
 
@@ -58,7 +59,7 @@
 
       <!-- Shown instead of the button when Jordan closes the book -->
       <div class="closed-state" id="closedState" hidden>
-        <p>The book is closed. Thanks for signing Yoni off &mdash; the photo wall's still here to browse.</p>
+        <p>The book is closed. Thanks for signing Yoni off - the photo wall's still here to browse.</p>
       </div>
     </div>
 
@@ -116,14 +117,14 @@
         </label>
 
         <label class="field">
-          <span class="label">Your message <span class="hint">(private &mdash; just for Yoni's book)</span></span>
+          <span class="label">Your message <span class="hint">(private - just for Yoni's book)</span></span>
           <textarea id="messageInput" rows="5" placeholder="Say the thing you'd never say to his face."></textarea>
           <span class="counter"><span id="charCount">0</span> / <span id="charMax">1000</span></span>
         </label>
 
         <div class="field">
           <span class="label">Photos <span class="hint">(up to 3)</span></span>
-          <p class="notice">Only appropriate (or <em>mildly</em> inappropriate) photos, please &mdash; these go straight to the public photo wall that everyone sees right after you submit.</p>
+          <p class="notice">Only appropriate (or <em>mildly</em> inappropriate) photos, please - these go straight to the public photo wall that everyone sees right after you submit.</p>
           <div class="photo-picker">
             <button type="button" class="photo-add" id="photoAdd">
               <span>+ Add photo</span>
@@ -149,6 +150,13 @@
         <p class="done-copy">All these jokes are really just to hide the fact we're all really sad to see him go, right?</p>
         <p class="done-sub">Taking you to the wall&hellip;</p>
       </section>
+
+      <!-- Step: already signed (Google email matched an existing entry) -->
+      <section class="step step-center" id="stepAlready" hidden>
+        <h2 class="sheet-title done-title">Already signed &lt;3</h2>
+        <p class="done-copy">You've already left your mark on Yoni's book. No need to do it twice.</p>
+        <p class="done-sub">Taking you to the wall&hellip;</p>
+      </section>
     </div>
   </div>
 
@@ -158,7 +166,7 @@
     <img id="lightboxImg" src="" alt="Farewell photo" />
   </div>
 
-  <script src="config.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="config.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

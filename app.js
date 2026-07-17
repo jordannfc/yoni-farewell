@@ -24,6 +24,7 @@
     stepForm: $("stepForm"),
     stepLoading: $("stepLoading"),
     stepDone: $("stepDone"),
+    stepAlready: $("stepAlready"),
     loadingText: $("loadingText"),
     name: $("nameInput"),
     message: $("messageInput"),
@@ -87,6 +88,14 @@
     els.stepForm.hidden = name !== "form";
     els.stepLoading.hidden = name !== "loading";
     els.stepDone.hidden = name !== "done";
+    els.stepAlready.hidden = name !== "already";
+  }
+
+  function goToWall() {
+    closeOverlay();
+    var wall = document.getElementById("wall");
+    if (wall) wall.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    loadFeed();
   }
 
   els.openForm.addEventListener("click", function () {
@@ -176,7 +185,24 @@
     if (payload && payload.name && els.name && !els.name.value) {
       els.name.value = payload.name; // editable prefill
     }
-    showStep("form");
+    // Cross-check: has this Google account already signed? If so, skip to the wall.
+    showStep("loading");
+    els.loadingText.textContent = "One sec…";
+    fetch(CFG.APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "checkmine", idToken: state.idToken }),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.submitted) {
+          showStep("already");
+          setTimeout(goToWall, 1900);
+        } else {
+          showStep("form");
+        }
+      })
+      .catch(function () { showStep("form"); });
   }
   function decodeJwt(token) {
     try {
@@ -404,12 +430,7 @@
     els.charCount.textContent = "0";
     updateAddState();
     // Flow into the wall.
-    setTimeout(function () {
-      closeOverlay();
-      var wall = document.getElementById("wall");
-      if (wall) wall.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
-      loadFeed();
-    }, 2100);
+    setTimeout(goToWall, 2100);
   }
 
   // ==========================================================================

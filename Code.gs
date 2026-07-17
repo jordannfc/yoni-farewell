@@ -44,6 +44,14 @@ function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents);
 
+    // Has this Google account already signed? (used to route repeat visitors to the wall)
+    if (body.action === "checkmine") {
+      if (!GOOGLE_CLIENT_ID || !body.idToken) return json_({ ok: true, submitted: false });
+      var vm = verifyToken_(body.idToken);
+      if (!vm.ok) return json_({ ok: false, error: "auth_failed: " + vm.error });
+      return json_({ ok: true, submitted: emailHasEntry_(vm.email) });
+    }
+
     if (isClosed_()) {
       return json_({ ok: false, closed: true, error: "The book is closed." });
     }
@@ -185,6 +193,19 @@ function ensureSettings_(ss) {
   if (String(s.getRange("B2").getValue()).trim() === "") s.getRange("B2").setValue("2607");
   s.getRange("A4").setValue("B1=TRUE closes the book. B2 is the 4-digit code for guests who don't use Google — change it to your own.");
   return s;
+}
+
+function emailHasEntry_(email) {
+  if (!email) return false;
+  var sheet = getEntriesSheet_();
+  var last = sheet.getLastRow();
+  if (last < 2) return false;
+  var emails = sheet.getRange(2, 2, last - 1, 1).getValues(); // column 2 = google_email
+  var target = String(email).toLowerCase();
+  for (var i = 0; i < emails.length; i++) {
+    if (String(emails[i][0]).toLowerCase() === target) return true;
+  }
+  return false;
 }
 
 function getPin_() {
