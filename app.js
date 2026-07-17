@@ -186,13 +186,12 @@
       els.name.value = payload.name; // editable prefill
     }
     // Cross-check: has this Google account already signed? If so, skip to the wall.
+    // GET (not POST) so an un-redeployed backend can never write a stray entry.
     showStep("loading");
     els.loadingText.textContent = "One sec…";
-    fetch(CFG.APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "checkmine", idToken: state.idToken }),
-    })
+    var mineUrl = CFG.APPS_SCRIPT_URL + (CFG.APPS_SCRIPT_URL.indexOf("?") > -1 ? "&" : "?") +
+      "action=checkmine&idToken=" + encodeURIComponent(state.idToken);
+    fetch(mineUrl)
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (res && res.submitted) {

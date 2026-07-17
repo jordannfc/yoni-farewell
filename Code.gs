@@ -34,6 +34,13 @@ function doGet(e) {
       var given = (e.parameter.pin || "").toString().trim();
       return json_({ ok: true, valid: !!pin && given === pin });
     }
+    if (action === "checkmine") {
+      var t = e.parameter.idToken || "";
+      if (!GOOGLE_CLIENT_ID || !t) return json_({ ok: true, submitted: false });
+      var vm = verifyToken_(t);
+      if (!vm.ok) return json_({ ok: false, error: "auth_failed: " + vm.error });
+      return json_({ ok: true, submitted: emailHasEntry_(vm.email) });
+    }
     return json_({ ok: true, service: "yoni-farewell", closed: isClosed_() });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
@@ -43,14 +50,6 @@ function doGet(e) {
 function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents);
-
-    // Has this Google account already signed? (used to route repeat visitors to the wall)
-    if (body.action === "checkmine") {
-      if (!GOOGLE_CLIENT_ID || !body.idToken) return json_({ ok: true, submitted: false });
-      var vm = verifyToken_(body.idToken);
-      if (!vm.ok) return json_({ ok: false, error: "auth_failed: " + vm.error });
-      return json_({ ok: true, submitted: emailHasEntry_(vm.email) });
-    }
 
     if (isClosed_()) {
       return json_({ ok: false, closed: true, error: "The book is closed." });
