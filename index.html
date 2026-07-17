@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Yoni's Farewell</title>
+  <meta name="description" content="Sign Yoni off with a message and a photo before he leaves for New York. For now." />
+
+  <!-- Open Graph / Twitter (this URL gets pasted in group chats) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Yoni's Farewell" />
+  <meta property="og:description" content="Yes, we're finally getting rid of him. Sign the book before 11pm tonight." />
+  <meta property="og:image" content="assets/og-image.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Yoni's Farewell" />
+  <meta name="twitter:description" content="Send Yoni off with a message and a photo. Before 11pm tonight." />
+  <meta name="twitter:image" content="assets/og-image.jpg" />
+  <meta name="theme-color" content="#100F0D" />
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+
+  <!-- Fonts (font-display: swap, so first paint isn't blocked) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Google Identity Services (only used if a client ID is configured) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ===================== HERO / LANDING ===================== -->
+  <header class="hero" id="hero">
+    <div class="hero-photos" id="heroPhotos" aria-hidden="true">
+      <!-- Hero photos of Yoni. Drop 3-5 into /assets and rename to match. -->
+      <img src="assets/yoni-1.jpg" alt="" onerror="this.style.display='none'" />
+      <img src="assets/yoni-2.jpg" alt="" onerror="this.style.display='none'" />
+      <img src="assets/yoni-3.jpg" alt="" onerror="this.style.display='none'" />
+      <img src="assets/yoni-4.jpg" alt="" onerror="this.style.display='none'" />
+      <img src="assets/yoni-5.jpg" alt="" onerror="this.style.display='none'" />
+    </div>
+
+    <div class="hero-inner reveal">
+      <h1 class="hero-title">Yoni's Farewell</h1>
+      <div class="hero-copy">
+        <p>Yes, we're finally getting rid of him.</p>
+        <p>Yes, we should probably wait for him to <em>actually</em> leave before we properly celebrate.</p>
+        <p>But also yes &mdash; we should send him off with some sentimental messages and photos.</p>
+        <p>And yes &mdash; the nicer (and funnier) your message, the more likely he is to stay a bit longer.</p>
+        <p class="hero-destination">He's off to New York. For now.</p>
+      </div>
+
+      <div class="hero-cta">
+        <button class="btn btn-primary" id="openFormBtn">Sign the book</button>
+        <p class="deadline" id="deadlineLine">Get it in before 11pm tonight (AEST).</p>
+      </div>
+
+      <!-- Shown instead of the button when Jordan closes the book -->
+      <div class="closed-state" id="closedState" hidden>
+        <p>The book is closed. Thanks for signing Yoni off &mdash; the photo wall's still here to browse.</p>
+      </div>
+    </div>
+
+    <div class="scroll-hint" aria-hidden="true">
+      <span>The wall</span>
+    </div>
+  </header>
+
+  <!-- ===================== LIVE PHOTO WALL ===================== -->
+  <main class="wall-section" id="wall">
+    <div class="wall-head reveal">
+      <h2 class="section-title">The wall</h2>
+      <p class="section-sub">Photos, newest first. Tap to enlarge.</p>
+    </div>
+
+    <div class="wall" id="wallGrid" aria-live="polite"></div>
+
+    <div class="wall-empty" id="wallEmpty" hidden>
+      <p>Be the first to put a face to the farewell.</p>
+    </div>
+  </main>
+
+  <footer class="site-foot">
+    <p>Yoni's Farewell &middot; made with &lt;3</p>
+  </footer>
+
+  <!-- ===================== FORM OVERLAY ===================== -->
+  <div class="overlay" id="overlay" hidden>
+    <div class="overlay-scrim" data-close></div>
+
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <button class="sheet-close" id="sheetClose" aria-label="Close" data-close>&times;</button>
+
+      <!-- Step: Google Sign-In (shown only when a client ID is configured) -->
+      <section class="step" id="stepSignin" hidden>
+        <h2 class="sheet-title" id="sheetTitle">Sign the book</h2>
+        <p class="sheet-lead">Sign in with Google so we know who to blame. Your message shows under whatever name you like.</p>
+        <div class="gsi-wrap"><div id="gsiButton"></div></div>
+        <button class="btn btn-ghost small" id="skipSignin" hidden>Continue without signing in</button>
+      </section>
+
+      <!-- Step: the form -->
+      <section class="step" id="stepForm" hidden>
+        <h2 class="sheet-title">Sign the book</h2>
+
+        <label class="field">
+          <span class="label">Your name</span>
+          <input type="text" id="nameInput" maxlength="80" autocomplete="name"
+                 placeholder="However you want to be remembered" />
+        </label>
+
+        <label class="field">
+          <span class="label">Your message <span class="hint">(private &mdash; just for Yoni's book)</span></span>
+          <textarea id="messageInput" rows="5" placeholder="Say the thing you'd never say to his face."></textarea>
+          <span class="counter"><span id="charCount">0</span> / <span id="charMax">1000</span></span>
+        </label>
+
+        <div class="field">
+          <span class="label">Photos <span class="hint">(up to 3)</span></span>
+          <p class="notice">Only appropriate (or <em>mildly</em> inappropriate) photos, please &mdash; these go straight to the public photo wall that everyone sees right after you submit.</p>
+          <div class="photo-picker">
+            <button type="button" class="photo-add" id="photoAdd">
+              <span>+ Add photo</span>
+            </button>
+            <input type="file" id="photoInput" accept="image/*" multiple hidden />
+          </div>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+
+        <button class="btn btn-primary block" id="submitBtn">Sign the book</button>
+        <p class="err" id="formErr" hidden></p>
+      </section>
+
+      <!-- Step: submitting -->
+      <section class="step step-center" id="stepLoading" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="loading-text" id="loadingText">Sealing it&hellip;</p>
+      </section>
+
+      <!-- Step: confirmation -->
+      <section class="step step-center" id="stepDone" hidden>
+        <h2 class="sheet-title done-title">Sealed &lt;3</h2>
+        <p class="done-copy">All these jokes are really just to hide the fact we're all really sad to see him go, right?</p>
+        <p class="done-sub">Taking you to the wall&hellip;</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===================== LIGHTBOX ===================== -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
+    <img id="lightboxImg" src="" alt="Farewell photo" />
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

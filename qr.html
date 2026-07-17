@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yoni's Farewell — Table Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{ --bg:#100F0D; --surface:#1A1815; --text:#F5F0E8; --muted:#A39C90; --accent:#E6B27C; --hairline:rgba(245,240,232,.14); }
+  *{box-sizing:border-box}
+  body{margin:0;background:#0b0a09;color:var(--text);font-family:"Inter",system-ui,sans-serif;padding:28px}
+  .bar{max-width:900px;margin:0 auto 20px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .bar h1{font-family:"Fraunces",serif;font-weight:600;font-size:1.3rem;margin:0}
+  .bar .url{color:var(--muted);font-size:.85rem;word-break:break-all}
+  button{font-family:"Inter";font-weight:600;background:var(--accent);color:#100F0D;border:none;border-radius:10px;padding:11px 20px;cursor:pointer}
+  .sheet{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:26px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .card h2{font-family:"Fraunces",serif;font-weight:600;font-size:1.5rem;margin:0}
+  .card .sub{color:var(--muted);font-size:.9rem;margin:0;line-height:1.5}
+  .qr{background:#fff;border-radius:12px;padding:12px;width:190px;height:190px;display:flex;align-items:center;justify-content:center}
+  .qr img{width:100%;height:100%}
+  .cta{font-family:"Fraunces",serif;color:var(--accent);font-size:1.15rem}
+  .short{color:var(--muted);font-size:.8rem;word-break:break-all}
+  .deadline{color:var(--muted);font-size:.78rem}
+  @media print{
+    body{background:#fff;color:#100F0D;padding:0}
+    .bar{display:none}
+    .sheet{gap:0;max-width:none}
+    .card{border:1px dashed #bbb;border-radius:0;color:#100F0D;background:#fff;page-break-inside:avoid;min-height:48vh;justify-content:center}
+    .card .sub,.short,.deadline{color:#555}
+    .cta{color:#b7791f}
+    .qr{border:1px solid #eee}
+  }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <div>
+      <h1>Yoni's Farewell — table cards</h1>
+      <div class="url" id="urlLine"></div>
+    </div>
+    <button onclick="window.print()">Print</button>
+  </div>
+
+  <div class="sheet" id="sheet"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    var URL_TO_ENCODE = "https://jordannfc.github.io/yoni-farewell/";
+    document.getElementById("urlLine").textContent = URL_TO_ENCODE;
+
+    // Generate one QR, reuse its image across all cards.
+    var tmp = document.createElement("div");
+    new QRCode(tmp, { text: URL_TO_ENCODE, width: 400, height: 400,
+      colorDark: "#100F0D", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+
+    function cardHTML(imgSrc){
+      return '<div class="card">' +
+        '<h2>Yoni\'s Farewell</h2>' +
+        '<p class="sub">Scan to sign the book &mdash;<br>a message + a photo before he flies.</p>' +
+        '<div class="qr"><img src="' + imgSrc + '" alt="QR code"></div>' +
+        '<div class="cta">Sign the book</div>' +
+        '<div class="short">' + URL_TO_ENCODE + '</div>' +
+        '<div class="deadline">Before 11pm tonight (AEST)</div>' +
+        '</div>';
+    }
+
+    setTimeout(function(){
+      var img = tmp.querySelector("img") || tmp.querySelector("canvas");
+      var src = img.tagName === "IMG" ? img.src : img.toDataURL("image/png");
+      var sheet = document.getElementById("sheet");
+      sheet.innerHTML = cardHTML(src) + cardHTML(src) + cardHTML(src) + cardHTML(src);
+    }, 300);
+  </script>
+</body>
+</html>
