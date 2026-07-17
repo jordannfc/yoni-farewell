@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 
   <!-- Google Identity Services (only used if a client ID is configured) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -34,16 +34,14 @@
 
   <!-- ===================== HERO / LANDING ===================== -->
   <header class="hero" id="hero">
-    <div class="hero-photos" id="heroPhotos" aria-hidden="true">
-      <!-- Hero photos of Yoni. Drop 3-5 into /assets and rename to match. -->
-      <img src="assets/yoni-1.jpg" alt="" onerror="this.style.display='none'" />
-      <img src="assets/yoni-2.jpg" alt="" onerror="this.style.display='none'" />
-      <img src="assets/yoni-3.jpg" alt="" onerror="this.style.display='none'" />
-      <img src="assets/yoni-4.jpg" alt="" onerror="this.style.display='none'" />
-      <img src="assets/yoni-5.jpg" alt="" onerror="this.style.display='none'" />
-    </div>
-
     <div class="hero-inner reveal">
+      <div class="hero-strip" aria-hidden="true">
+        <img src="assets/yoni-1.jpg" alt="" onerror="this.remove()" />
+        <img src="assets/yoni-2.jpg" alt="" onerror="this.remove()" />
+        <img src="assets/yoni-3.jpg" alt="" onerror="this.remove()" />
+        <img src="assets/yoni-4.jpg" alt="" onerror="this.remove()" />
+        <img src="assets/yoni-5.jpg" alt="" onerror="this.remove()" />
+      </div>
       <h1 class="hero-title">Yoni's Farewell</h1>
       <div class="hero-copy">
         <p>Yes, we're finally getting rid of him.</p>
@@ -83,10 +81,6 @@
     </div>
   </main>
 
-  <footer class="site-foot">
-    <p>Yoni's Farewell &middot; made with &lt;3</p>
-  </footer>
-
   <!-- ===================== FORM OVERLAY ===================== -->
   <div class="overlay" id="overlay" hidden>
     <div class="overlay-scrim" data-close></div>
@@ -99,7 +93,16 @@
         <h2 class="sheet-title" id="sheetTitle">Sign the book</h2>
         <p class="sheet-lead">Sign in with Google so we know who to blame. Your message shows under whatever name you like.</p>
         <div class="gsi-wrap"><div id="gsiButton"></div></div>
-        <button class="btn btn-ghost small" id="skipSignin" hidden>Continue without signing in</button>
+        <div class="or-divider" id="orDivider"><span>or</span></div>
+        <div class="code-entry">
+          <label class="label" for="codeInput">Enter the party code</label>
+          <div class="code-row">
+            <input type="text" id="codeInput" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+                   placeholder="4-digit code" autocomplete="off" />
+            <button class="btn btn-ghost small" id="codeSubmit">Enter</button>
+          </div>
+          <p class="err" id="codeErr" hidden></p>
+        </div>
       </section>
 
       <!-- Step: the form -->
@@ -155,7 +158,7 @@
     <img id="lightboxImg" src="" alt="Farewell photo" />
   </div>
 
-  <script src="config.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <script src="config.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

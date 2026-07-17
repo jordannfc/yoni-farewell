@@ -17,7 +17,10 @@
     sheetClose: $("sheetClose"),
     stepSignin: $("stepSignin"),
     gsiButton: $("gsiButton"),
-    skipSignin: $("skipSignin"),
+    orDivider: $("orDivider"),
+    codeInput: $("codeInput"),
+    codeSubmit: $("codeSubmit"),
+    codeErr: $("codeErr"),
     stepForm: $("stepForm"),
     stepLoading: $("stepLoading"),
     stepDone: $("stepDone"),
@@ -40,6 +43,7 @@
 
   var state = {
     idToken: null,
+    pin: null,            // party code, if used instead of Google
     photos: [],          // { data: base64, mime, previewUrl }
     seenPhotoIds: {},     // dedupe wall
     closed: false,
@@ -70,12 +74,9 @@
   function openOverlay() {
     els.overlay.hidden = false;
     document.body.style.overflow = "hidden";
-    // Decide first step: sign-in (if configured & not yet signed) or form.
-    if (CFG.GOOGLE_CLIENT_ID && !state.idToken && window.google && google.accounts) {
-      showStep("signin");
-    } else {
-      showStep("form");
-    }
+    // Always gate on the sign-in step (Google OR party code) until authed once.
+    if (state.idToken || state.pin) showStep("form");
+    else showStep("signin");
   }
   function closeOverlay() {
     els.overlay.hidden = true;
@@ -107,7 +108,7 @@
   // Google Sign-In (only if configured)
   // ==========================================================================
   function initGoogle() {
-    if (!CFG.GOOGLE_CLIENT_ID) return;
+    if (!CFG.GOOGLE_CLIENT_ID) { hideGoogleUi(); return; }
     var tries = 0;
     var t = setInterval(function () {
       tries++;
@@ -121,20 +122,53 @@
           google.accounts.id.renderButton(els.gsiButton, {
             theme: "filled_black", size: "large", shape: "pill", text: "signin_with",
           });
-          // Safety hatch if login misbehaves at the party.
-          els.skipSignin.hidden = false;
-        } catch (err) { fallbackToNameOnly(); }
+        } catch (err) { hideGoogleUi(); }
       } else if (tries > 25) { // ~5s
         clearInterval(t);
-        fallbackToNameOnly();
+        hideGoogleUi();
       }
     }, 200);
   }
-  function fallbackToNameOnly() {
-    // If the Google library can't load / init, don't block the party.
-    if (!els.overlay.hidden) showStep("form");
+  function hideGoogleUi() {
+    // Google unavailable / not configured -> guests use the party code instead.
+    if (els.gsiButton && els.gsiButton.parentNode) els.gsiButton.parentNode.style.display = "none";
+    if (els.orDivider) els.orDivider.style.display = "none";
   }
-  els.skipSignin.addEventListener("click", function () { showStep("form"); });
+
+  // Party code entry (alternative to Google).
+  function submitCode() {
+    var code = (els.codeInput.value || "").trim();
+    els.codeErr.hidden = true;
+    if (!/^\d{4}$/.test(code)) {
+      els.codeErr.textContent = "Enter the 4-digit code.";
+      els.codeErr.hidden = false;
+      return;
+    }
+    els.codeSubmit.disabled = true;
+    var url = CFG.APPS_SCRIPT_URL + (CFG.APPS_SCRIPT_URL.indexOf("?") > -1 ? "&" : "?") +
+      "action=checkpin&pin=" + encodeURIComponent(code);
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        els.codeSubmit.disabled = false;
+        if (res && res.valid) {
+          state.pin = code;
+          showStep("form");
+        } else {
+          els.codeErr.textContent = "That code isn't right. Ask whoever's running the book.";
+          els.codeErr.hidden = false;
+        }
+      })
+      .catch(function () {
+        els.codeSubmit.disabled = false;
+        els.codeErr.textContent = "Couldn't check the code — try again.";
+        els.codeErr.hidden = false;
+      });
+  }
+  els.codeSubmit.addEventListener("click", submitCode);
+  els.codeInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); submitCode(); }
+  });
 
   function onCredential(resp) {
     state.idToken = resp.credential;
@@ -293,9 +327,10 @@
       showFormErr("Leave a message or at least one photo.");
       return;
     }
-    if (CFG.GOOGLE_CLIENT_ID && !state.idToken) {
-      // Configured but not signed in and library present -> nudge; otherwise allow.
-      // (We already fall back to name-only if the library failed.)
+    if (!state.idToken && !state.pin) {
+      // Not authed either way — send them back to the gate.
+      showStep("signin");
+      return;
     }
     if (!backendReady) {
       showFormErr("Backend not configured yet (APPS_SCRIPT_URL). See SETUP.md.");
@@ -313,6 +348,7 @@
 
     var payload = {
       idToken: state.idToken || null,
+      pin: state.pin || null,
       name: name,
       message: message,
       photos: state.photos.map(function (p) { return { data: p.data, mime: p.mime }; }),
@@ -332,6 +368,13 @@
             markClosed();
             showStep("form");
             showFormErr("The book just closed. Thanks anyway — the wall's still here.");
+            return;
+          }
+          if (res && (res.error === "auth_required" || (res.error && res.error.indexOf("auth_failed") === 0))) {
+            state.idToken = null; state.pin = null;
+            showStep("signin");
+            els.codeErr.textContent = "Couldn't verify you — sign in with Google or re-enter the code.";
+            els.codeErr.hidden = false;
             return;
           }
           showStep("form");

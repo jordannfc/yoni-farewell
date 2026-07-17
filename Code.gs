@@ -29,6 +29,11 @@ function doGet(e) {
   try {
     if (action === "feed")   return json_(getFeed_());
     if (action === "status") return json_({ ok: true, closed: isClosed_() });
+    if (action === "checkpin") {
+      var pin = getPin_();
+      var given = (e.parameter.pin || "").toString().trim();
+      return json_({ ok: true, valid: !!pin && given === pin });
+    }
     return json_({ ok: true, service: "yoni-farewell", closed: isClosed_() });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
@@ -43,15 +48,19 @@ function doPost(e) {
       return json_({ ok: false, closed: true, error: "The book is closed." });
     }
 
-    // Verify identity if a token was supplied. If none was (name-only mode, or the
-    // Sign-In fallback was used at the party), accept the submission anyway — a
-    // working book beats a broken login. A supplied-but-INVALID token is rejected.
+    // Auth: accept a valid Google ID token OR the correct party code (settings!B2).
+    // No open bypass — a guest needs one of the two.
     var email = "";
+    var authed = false;
     if (GOOGLE_CLIENT_ID && body.idToken) {
       var v = verifyToken_(body.idToken);
-      if (!v.ok) return json_({ ok: false, error: "auth_failed: " + v.error });
-      email = v.email;
+      if (v.ok) { authed = true; email = v.email; }
     }
+    if (!authed) {
+      var pin = getPin_();
+      if (pin && body.pin && String(body.pin).trim() === pin) authed = true;
+    }
+    if (!authed) return json_({ ok: false, error: "auth_required" });
 
     var name = (body.name || "").toString().trim().slice(0, 80) || "Anonymous";
     var message = (body.message || "").toString().slice(0, 4000);
@@ -163,14 +172,34 @@ function getEntriesSheet_() {
     entries.appendRow(["timestamp", "google_email", "display_name", "message", "photo_ids", "photo_links", "hidden"]);
     entries.setFrozenRows(1);
   }
-  var settings = ss.getSheetByName("settings");
-  if (!settings) {
-    settings = ss.insertSheet("settings");
-    settings.getRange("A1").setValue("closed?");
-    settings.getRange("B1").setValue(false);
-    settings.getRange("A2").setValue("(Set B1 to TRUE to close the book. Photo wall stays viewable.)");
-  }
+  ensureSettings_(ss);
   return entries;
+}
+
+function ensureSettings_(ss) {
+  var s = ss.getSheetByName("settings");
+  if (!s) s = ss.insertSheet("settings");
+  s.getRange("A1").setValue("closed?");
+  if (s.getRange("B1").getValue() === "") s.getRange("B1").setValue(false);
+  s.getRange("A2").setValue("party_code (4 digits)");
+  if (String(s.getRange("B2").getValue()).trim() === "") s.getRange("B2").setValue("2607");
+  s.getRange("A4").setValue("B1=TRUE closes the book. B2 is the 4-digit code for guests who don't use Google — change it to your own.");
+  return s;
+}
+
+function getPin_() {
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var id = props.getProperty("SHEET_ID");
+    if (!id) return "";
+    var ss = SpreadsheetApp.openById(id);
+    var s = ss.getSheetByName("settings") || ensureSettings_(ss);
+    var v = String(s.getRange("B2").getValue()).trim();
+    if (v === "") { ensureSettings_(ss); v = String(s.getRange("B2").getValue()).trim(); }
+    return v;
+  } catch (e) {
+    return "";
+  }
 }
 
 function getPhotosFolder_() {
